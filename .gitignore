@@ -31,3 +31,22 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment Variables & Secrets ###
+.env
+.env.*
+!.env.example
+*.local
+
+### Logs ###
+*.log
+logs/
+
+### OS Generated ###
+.DS_Store
+Thumbs.db
+
+### Node / Frontend ###
+node_modules/
+dist/
+

@@ -1,5 +1,8 @@
 #database configurations
 
+server:
+  port: ${SERVER_PORT:5643}
+
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:docmind}
@@ -15,22 +18,27 @@ spring:
         format_sql: true
 
 
-  #open ai configurations
+  #gemini configurations
   ai:
-    openai:
-      api-key: ${OPENAI_API_KEY:demo-key}
-      chat:
-        model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
-        temperature: 0.2
-      embedding:
-        model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY}
+        chat:
+          model: ${GEMINI_CHAT_MODEL:gemini-3.8-flash}
+          temperature: 0.2
+        embedding:
+          api-key: ${GEMINI_API_KEY}
+          vertex-ai: false
+          text:
+            model: ${GEMINI_EMBEDDING_MODEL:gemini-embedding-001}
+            dimensions: 768
 
 
     vectorstore:
       pgvector:
         index-type: HNSW
         distance-type: COSINE_DISTANCE
-        dimensions: 1536
+        dimensions: 768
         table-name: vector_store
         schema-name: public
         initialize-schema: true

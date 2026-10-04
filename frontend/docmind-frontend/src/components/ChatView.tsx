@@ -756,12 +756,15 @@ const ChatView: React.FC = () => {
           <div className="animate-fade-in max-w-2xl mx-auto">
             <div className="text-center mb-8">
               <div className="relative inline-block mb-4">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl blur-xl opacity-40" />
-                <div className="relative w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-500/30">
-                  <Bot className="w-8 h-8 text-white" />
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl blur-2xl opacity-40" />
+                <img
+                  src="/logo.png"
+                  alt="RetrievalHub Logo"
+                  className="relative w-20 h-20 rounded-2xl object-contain bg-white p-2 shadow-2xl shadow-indigo-500/30 ring-1 ring-white/20 mx-auto"
+                />
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">DocMind AI</h2>
+              <h2 className="text-2xl font-bold text-white mb-1">RetrievalHub AI</h2>
+              <p className="text-xs font-semibold text-indigo-400 mb-3 tracking-wide">YOUR DOCUMENTS. SMARTER ANSWERS.</p>
               <p className="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
                 {selectedDoc
                   ? `Chatting with "${selectedDoc.filename}". Ask anything or pick a template below.`

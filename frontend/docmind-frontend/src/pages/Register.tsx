@@ -94,23 +94,25 @@ const Register: React.FC = () => {
         transition={{ duration: 0.25 }}
         className="sm:mx-auto sm:w-full sm:max-w-md relative z-10"
       >
-        <div className="flex justify-center items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 ring-1 ring-white/20">
-            <Brain className="w-7 h-7 text-white" />
+        <div className="flex flex-col items-center justify-center mb-6">
+          <img
+            src="/logo.png"
+            alt="RetrievalHub Logo"
+            className="w-20 h-20 rounded-2xl object-contain bg-white p-2 shadow-xl shadow-indigo-500/20 ring-1 ring-white/20 mb-3"
+          />
+          <div className="flex items-center gap-2">
+            <span className="text-3xl font-extrabold text-white tracking-tight">
+              Retrieval<span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">Hub</span>
+            </span>
+            <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
+              AI
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-2xl font-bold text-white tracking-tight">DocMind</span>
-              <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full">
-                AI
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">Create your account</p>
-          </div>
+          <p className="text-xs text-indigo-300 font-medium mt-1">Your Documents. Smarter Answers.</p>
         </div>
 
         <h2 className="mt-4 text-center text-2xl font-bold tracking-tight text-white">
-          Join DocMind
+          Join RetrievalHub
         </h2>
         <p className="mt-2 text-center text-sm text-slate-400">
           Already have an account?{' '}

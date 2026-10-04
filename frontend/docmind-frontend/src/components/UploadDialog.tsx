@@ -2,13 +2,15 @@ import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   X, Upload, FileText, CheckCircle, AlertCircle, Loader2, Plus,
-  File, FileImage, FileCode, FilePieChart, Trash2
+  File, FileCode, FilePieChart, Trash2, Sparkles, Layers,
+  FileSpreadsheet
 } from 'lucide-react';
 import { documentApi } from '../services/api';
 import { useDocumentStore } from '../store/documentStore';
 import type { UploadingFile } from '../types';
 import toast from 'react-hot-toast';
 import { clsx } from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface UploadDialogProps {
   isOpen: boolean;
@@ -29,13 +31,46 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
 }
 
-function getFileIcon(name: string) {
+function getFileTypeDetails(name: string) {
   const ext = name.split('.').pop()?.toLowerCase();
-  if (ext === 'pdf') return <FileText className="w-4 h-4 text-red-400" />;
-  if (ext === 'csv') return <FilePieChart className="w-4 h-4 text-green-400" />;
-  if (ext === 'md') return <FileCode className="w-4 h-4 text-purple-400" />;
-  if (ext === 'docx') return <FileImage className="w-4 h-4 text-blue-400" />;
-  return <File className="w-4 h-4 text-slate-400" />;
+  switch (ext) {
+    case 'pdf':
+      return {
+        icon: <FileText className="w-5 h-5 text-rose-400" />,
+        badge: 'PDF',
+        color: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+      };
+    case 'docx':
+      return {
+        icon: <File className="w-5 h-5 text-blue-400" />,
+        badge: 'DOCX',
+        color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+      };
+    case 'csv':
+      return {
+        icon: <FileSpreadsheet className="w-5 h-5 text-emerald-400" />,
+        badge: 'CSV',
+        color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+      };
+    case 'md':
+      return {
+        icon: <FileCode className="w-5 h-5 text-purple-400" />,
+        badge: 'MD',
+        color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+      };
+    case 'txt':
+      return {
+        icon: <FileText className="w-5 h-5 text-amber-400" />,
+        badge: 'TXT',
+        color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+      };
+    default:
+      return {
+        icon: <FilePieChart className="w-5 h-5 text-slate-400" />,
+        badge: ext?.toUpperCase() || 'FILE',
+        color: 'text-slate-400 bg-slate-500/10 border-slate-500/20',
+      };
+  }
 }
 
 const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
@@ -90,11 +125,14 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
     setIsUploading(false);
     await fetchDocuments();
     const successCount = files.filter((f) => f.status !== 'error').length;
-    if (successCount > 0) toast.success(`${successCount} document(s) uploaded & indexed`);
+    if (successCount > 0) toast.success(`${successCount} document(s) indexed with pgvector`);
   };
 
   const handleClose = () => {
-    if (!isUploading) { setFiles([]); onClose(); }
+    if (!isUploading) {
+      setFiles([]);
+      onClose();
+    }
   };
 
   const allDone = files.length > 0 && files.every((f) => f.status === 'done' || f.status === 'error');
@@ -106,168 +144,257 @@ const UploadDialog: React.FC<UploadDialogProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={handleClose} />
+      <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity" onClick={handleClose} />
 
       {/* Dialog */}
-      <div className="relative z-10 w-full max-w-lg bg-[#1e293b] border border-[#334155] rounded-2xl shadow-2xl shadow-black/50 animate-fade-in">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="relative z-10 w-full max-w-xl bg-[#0f172a]/95 border border-slate-750 rounded-3xl shadow-2xl shadow-indigo-950/50 overflow-hidden ring-1 ring-white/10"
+      >
+        {/* Glow ambient header decoration */}
+        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#334155]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-900/40">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-indigo-500/20 rounded-xl flex items-center justify-center">
-              <Upload className="w-4 h-4 text-indigo-400" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-indigo-500/30 flex items-center justify-center shadow-inner">
+              <Upload className="w-5 h-5 text-indigo-400" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white">Upload Documents</h2>
-              <p className="text-xs text-slate-400">PDF · DOCX · TXT · MD · CSV</p>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-white tracking-tight">Upload to RetrievalHub</h2>
+                <span className="text-[10px] font-semibold text-indigo-300 bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 rounded-full">
+                  pgvector RAG
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">Automated chunking & 768-dim embeddings</p>
             </div>
           </div>
           <button
             onClick={handleClose}
             disabled={isUploading}
-            className="p-1.5 hover:bg-[#334155] rounded-lg transition-colors text-slate-400 hover:text-white disabled:opacity-40"
+            aria-label="Close dialog"
+            className="p-1.5 hover:bg-slate-800 rounded-xl transition-colors text-slate-400 hover:text-white disabled:opacity-40 cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Drop zone */}
-        <div className="p-5">
+        <div className="p-6 space-y-4">
           <div
             {...getRootProps()}
             className={clsx(
-              'relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200 overflow-hidden group',
+              'relative border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-all duration-300 overflow-hidden group',
               isDragActive
-                ? 'border-indigo-500 bg-indigo-500/10'
-                : 'border-[#334155] hover:border-indigo-500/50 hover:bg-white/[0.02]'
+                ? 'border-indigo-400 bg-gradient-to-b from-indigo-500/15 to-purple-500/15 shadow-lg shadow-indigo-500/20 scale-[1.01]'
+                : 'border-slate-700/80 hover:border-indigo-500/60 bg-slate-900/40 hover:bg-slate-850/50'
             )}
           >
             <input {...getInputProps()} />
-            {/* Animated background blob */}
+
+            {/* Ambient hover glow */}
             <div className={clsx(
-              'absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 transition-opacity duration-300',
+              'absolute inset-0 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-purple-500/10 transition-opacity duration-300 pointer-events-none',
               isDragActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             )} />
+
             <div className="relative flex flex-col items-center gap-3">
               <div className={clsx(
-                'w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300',
-                isDragActive ? 'bg-indigo-500/20 scale-110' : 'bg-[#0f172a] group-hover:scale-105'
+                'w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-md',
+                isDragActive
+                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600 scale-110 shadow-indigo-500/40 text-white'
+                  : 'bg-slate-800/90 text-slate-300 group-hover:text-indigo-400 group-hover:scale-105 border border-slate-700'
               )}>
-                <Upload className={clsx('w-6 h-6 transition-colors', isDragActive ? 'text-indigo-400' : 'text-slate-400')} />
+                {isDragActive ? (
+                  <Sparkles className="w-8 h-8 animate-pulse" />
+                ) : (
+                  <Upload className="w-7 h-7" />
+                )}
               </div>
+
               <div>
-                <p className="text-white font-medium">
-                  {isDragActive ? '✨ Drop to upload' : 'Drag & drop files here'}
+                <p className="text-white font-semibold text-sm sm:text-base">
+                  {isDragActive ? '✨ Drop files to index' : 'Drag & drop your documents here'}
                 </p>
-                <p className="text-slate-400 text-sm mt-1">
-                  or <span className="text-indigo-400 hover:underline">click to browse</span>
+                <p className="text-slate-400 text-xs mt-1">
+                  or <span className="text-indigo-400 font-medium underline underline-offset-4 group-hover:text-indigo-300">browse files from your computer</span>
                 </p>
               </div>
-              <div className="flex flex-wrap gap-1.5 justify-center mt-1">
+
+              {/* Supported filetypes */}
+              <div className="flex flex-wrap gap-1.5 justify-center pt-1">
                 {[
-                  { ext: 'PDF', color: 'text-red-400 bg-red-400/10' },
-                  { ext: 'DOCX', color: 'text-blue-400 bg-blue-400/10' },
-                  { ext: 'TXT', color: 'text-slate-300 bg-slate-400/10' },
-                  { ext: 'MD', color: 'text-purple-400 bg-purple-400/10' },
-                  { ext: 'CSV', color: 'text-green-400 bg-green-400/10' },
+                  { ext: 'PDF', color: 'text-rose-400 bg-rose-500/10 border-rose-500/20' },
+                  { ext: 'DOCX', color: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
+                  { ext: 'TXT', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                  { ext: 'MD', color: 'text-purple-400 bg-purple-500/10 border-purple-500/20' },
+                  { ext: 'CSV', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
                 ].map(({ ext, color }) => (
-                  <span key={ext} className={clsx('text-xs px-2 py-0.5 rounded-full font-medium', color)}>
+                  <span key={ext} className={clsx('text-[11px] px-2 py-0.5 rounded-md font-semibold border', color)}>
                     .{ext.toLowerCase()}
                   </span>
                 ))}
+                <span className="text-[11px] text-slate-500 py-0.5 px-1.5">Up to 25MB</span>
               </div>
             </div>
           </div>
 
-          {/* Stats bar when files selected */}
+          {/* Stats Bar */}
           {files.length > 0 && (
-            <div className="flex items-center justify-between mt-3 px-1">
-              <span className="text-xs text-slate-400">{files.length} file(s) · {formatBytes(totalSize)}</span>
-              <button
-                onClick={() => setFiles([])}
-                disabled={isUploading}
-                className="text-xs text-slate-500 hover:text-red-400 flex items-center gap-1 transition-colors disabled:opacity-40"
-              >
-                <Trash2 className="w-3 h-3" /> Clear all
-              </button>
+            <div className="flex items-center justify-between px-2 pt-1 text-xs">
+              <div className="flex items-center gap-2 text-slate-300">
+                <span className="font-semibold text-white">{files.length}</span> file{files.length !== 1 ? 's' : ''} queued
+                <span className="text-slate-600">•</span>
+                <span className="text-slate-400">{formatBytes(totalSize)} total</span>
+              </div>
+              {!isUploading && (
+                <button
+                  onClick={() => setFiles([])}
+                  className="text-slate-400 hover:text-rose-400 flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" /> Clear list
+                </button>
+              )}
             </div>
           )}
 
-          {/* File list */}
+          {/* File cards list */}
           {files.length > 0 && (
-            <div className="mt-2 space-y-2 max-h-56 overflow-y-auto pr-1">
-              {files.map((uf) => (
-                <div key={uf.id} className="flex items-center gap-3 p-3 bg-[#0f172a] rounded-xl border border-[#334155]">
-                  <div className="p-2 bg-[#1e293b] rounded-lg flex-shrink-0">
-                    {getFileIcon(uf.file.name)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <p className="text-xs text-white font-medium truncate max-w-[200px]">{uf.file.name}</p>
-                      <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
-                        <span className="text-xs text-slate-500">{formatBytes(uf.file.size)}</span>
-                        {uf.status === 'pending' && (
-                          <button onClick={() => removeFile(uf.id)} className="text-slate-500 hover:text-red-400 transition-colors">
-                            <X className="w-3 h-3" />
-                          </button>
-                        )}
-                        {uf.status === 'uploading' && <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin" />}
-                        {uf.status === 'done' && <CheckCircle className="w-3.5 h-3.5 text-green-400" />}
-                        {uf.status === 'error' && <AlertCircle className="w-3.5 h-3.5 text-red-400" />}
+            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+              <AnimatePresence>
+                {files.map((uf) => {
+                  const typeDetails = getFileTypeDetails(uf.file.name);
+                  return (
+                    <motion.div
+                      key={uf.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-slate-700 transition-colors shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex-shrink-0">
+                          {typeDetails.icon}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1.5">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className={clsx('text-[10px] px-1.5 py-0.2 rounded font-bold border', typeDetails.color)}>
+                                {typeDetails.badge}
+                              </span>
+                              <p className="text-xs text-white font-medium truncate" title={uf.file.name}>
+                                {uf.file.name}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-[11px] text-slate-400 font-mono">{formatBytes(uf.file.size)}</span>
+                              {uf.status === 'pending' && (
+                                <button
+                                  onClick={() => removeFile(uf.id)}
+                                  className="text-slate-500 hover:text-rose-400 p-1 rounded-md transition-colors cursor-pointer"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {uf.status === 'uploading' && (
+                                <div className="flex items-center gap-1 text-indigo-400 text-xs">
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span>{uf.progress}%</span>
+                                </div>
+                              )}
+                              {uf.status === 'done' && (
+                                <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                  <CheckCircle className="w-3.5 h-3.5" /> Indexed
+                                </span>
+                              )}
+                              {uf.status === 'error' && (
+                                <span className="inline-flex items-center gap-1 text-rose-400 text-xs font-semibold bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/20">
+                                  <AlertCircle className="w-3.5 h-3.5" /> Error
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Animated Progress Bar */}
+                          <div className="w-full bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-800">
+                            <div
+                              className={clsx(
+                                'h-full rounded-full transition-all duration-300',
+                                uf.status === 'done' ? 'bg-gradient-to-r from-emerald-500 to-teal-400' :
+                                uf.status === 'error' ? 'bg-rose-500' :
+                                uf.status === 'uploading' ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 animate-pulse' :
+                                'bg-slate-800'
+                              )}
+                              style={{ width: uf.status === 'pending' ? '0%' : `${uf.progress}%` }}
+                            />
+                          </div>
+
+                          {/* Result/Error message */}
+                          {uf.status === 'error' && (
+                            <p className="text-[11px] text-rose-400 mt-1.5">{uf.error}</p>
+                          )}
+                          {uf.status === 'done' && uf.result && (
+                            <div className="flex items-center gap-2 mt-1.5 text-[11px] text-emerald-400 font-medium">
+                              <span className="flex items-center gap-1">
+                                <Layers className="w-3 h-3" />
+                                {uf.result.chunksCreated ?? 0} vector chunks created
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    {/* Progress bar */}
-                    <div className="w-full bg-[#334155] rounded-full h-1">
-                      <div
-                        className={clsx(
-                          'h-1 rounded-full transition-all duration-300',
-                          uf.status === 'done' ? 'bg-green-500' :
-                          uf.status === 'error' ? 'bg-red-500' :
-                          uf.status === 'uploading' ? 'bg-indigo-500' : 'bg-[#334155]'
-                        )}
-                        style={{ width: uf.status === 'pending' ? '0%' : `${uf.progress}%` }}
-                      />
-                    </div>
-                    {uf.status === 'error' && (
-                      <p className="text-xs text-red-400 mt-1">{uf.error}</p>
-                    )}
-                    {uf.status === 'done' && uf.result && (
-                      <p className="text-xs text-green-400 mt-1">
-                        ✓ {uf.result.chunksCreated ?? 0} chunks indexed
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-[#334155]">
-          <button
-            onClick={handleClose}
-            disabled={isUploading}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-white border border-[#334155] hover:border-[#475569] rounded-xl transition-colors disabled:opacity-50"
-          >
-            {allDone ? 'Close' : 'Cancel'}
-          </button>
-          {!allDone && (
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-800 bg-slate-900/60">
+          <p className="text-xs text-slate-500">
+            {pendingCount > 0 ? `${pendingCount} ready to embed` : allDone ? 'Processing completed' : 'Select files to begin'}
+          </p>
+
+          <div className="flex items-center gap-3">
             <button
-              onClick={handleUpload}
-              disabled={isUploading || pendingCount === 0}
-              className="flex items-center gap-2 px-5 py-2 text-sm font-medium bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
+              onClick={handleClose}
+              disabled={isUploading}
+              className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
             >
-              {isUploading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> Uploading…</>
-              ) : (
-                <><Plus className="w-4 h-4" /> Upload {pendingCount} file{pendingCount !== 1 ? 's' : ''}</>
-              )}
+              {allDone ? 'Done' : 'Cancel'}
             </button>
-          )}
+            {!allDone && (
+              <button
+                onClick={handleUpload}
+                disabled={isUploading || pendingCount === 0}
+                className="flex items-center gap-2 px-5 py-2 text-xs font-bold bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-600 hover:via-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/30 active:scale-95 cursor-pointer"
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Processing Embeddings…</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Index {pendingCount} Document{pendingCount !== 1 ? 's' : ''}</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
 export default UploadDialog;
+

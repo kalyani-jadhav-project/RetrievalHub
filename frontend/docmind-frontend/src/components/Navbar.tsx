@@ -60,14 +60,21 @@ const Navbar: React.FC<NavbarProps> = ({ onUploadClick }) => {
           <PanelLeft className={clsx('w-4 h-4 transition-colors', isSidebarOpen ? 'text-slate-400' : 'text-indigo-400')} />
         </button>
 
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-sm shadow-indigo-500/40">
-            <Brain className="w-4 h-4 text-white" />
+        <div className="flex items-center gap-2.5">
+          <img
+            src="/logo.png"
+            alt="RetrievalHub Logo"
+            className="w-8 h-8 rounded-lg object-contain bg-white p-0.5 shadow-sm ring-1 ring-white/10"
+          />
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-bold text-white tracking-tight">Retrieval<span className="text-indigo-400">Hub</span></span>
+              <span className="hidden sm:block text-[9px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.2 rounded-full">
+                AI
+              </span>
+            </div>
+            <span className="hidden lg:block text-[9px] text-slate-400 font-medium -mt-0.5 tracking-tight">Your Documents. Smarter Answers.</span>
           </div>
-          <span className="text-sm font-bold text-white tracking-tight">DocMind</span>
-          <span className="hidden sm:block text-[10px] font-semibold text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded-full">
-            AI
-          </span>
         </div>
       </div>
 
