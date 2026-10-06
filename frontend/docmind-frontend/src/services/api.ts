@@ -10,8 +10,14 @@ import type {
 } from '../types';
 import { useAuthStore } from '../store/authStore';
 
+// Backend base URL. Uses VITE_API_URL if set at build time,
+// otherwise falls back to the deployed Render backend.
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || 'https://retrievalhub0.onrender.com'
+).replace(/\/+$/, '');
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: `${API_BASE_URL}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -118,7 +124,7 @@ export const chatApi = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch('/api/v1/chat/stream', {
+    const response = await fetch(`${API_BASE_URL}/api/v1/chat/stream`, {
       method: 'POST',
       headers,
       body: JSON.stringify(request),
